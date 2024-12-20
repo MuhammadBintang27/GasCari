@@ -1,8 +1,11 @@
+import os
+import re
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
-from functions.similarity import calculate_cosine_similarity, calculate_jaccard_similarity
-from functions.snippet import extract_snippet
 from flask_cors import CORS
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # Inisialisasi Flask dan PyMongo
 app = Flask(__name__)
@@ -11,15 +14,90 @@ CORS(app, origins="http://localhost:5173", methods=["GET", "POST"], allow_header
 
 mongo = PyMongo(app)
 
-# Nama database dan koleksi
+# Konstanta database dan koleksi
 DB_SCRAPPING = "scrapping"
 DB_PROCESSED = "processed"
+COLLECTIONS = ["all", "berita", "mobil", "motor", "motorrace"]
 
-COLLECTIONS = ["all", "berita", "mobil", "motor", "motor_race"]
+# Fungsi membaca dokumen dari koleksi processed
+def read_documents_from_processed(category):
+    try:
+        collection = mongo.cx[DB_PROCESSED][category]
+        documents = []
+        titles = []
 
+        cursor = collection.find({})
+        for doc in cursor:
+            processed_text = doc.get("processed_text", [])
+            documents.append(" ".join(processed_text))
+            titles.append(doc.get("title", "Unknown Title"))
+
+        return documents, titles
+    except Exception as e:
+        print(f"Error reading from processed database: {e}")
+        return [], []
+
+# Fungsi membaca dokumen dari koleksi scrapping
+def read_documents_from_scrapping(category):
+    try:
+        collection = mongo.cx[DB_SCRAPPING][category]
+        documents = []
+
+        cursor = collection.find({})
+        for doc in cursor:
+            documents.append({
+                "title": doc.get("judul", ""),
+                "url": doc.get("url", ""),
+                "img_url": doc.get("image_url", ""),
+                "tanggalberita": doc.get("date", ""),
+                "snippet": doc.get("content", "")[:200]
+            })
+
+        return documents
+    except Exception as e:
+        print(f"Error reading from scrapping database: {e}")
+        return []
+
+# Fungsi menghitung Cosine Similarity
+def calculate_cosine_similarity(query, documents):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(documents + [query])
+    return cosine_similarity(tfidf_matrix[-1], tfidf_matrix[:-1]).flatten()
+
+# Fungsi menghitung Jaccard Similarity
+def calculate_jaccard_similarity(query, documents):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(documents)
+    query_tfidf = vectorizer.transform([query])
+
+    binary_matrix = (tfidf_matrix > 0).astype(int)
+    query_binary = (query_tfidf > 0).astype(int)
+
+    scores = []
+    for i in range(binary_matrix.shape[0]):
+        intersection = np.logical_and(query_binary.toarray(), binary_matrix[i].toarray()).sum()
+        union = np.logical_or(query_binary.toarray(), binary_matrix[i].toarray()).sum()
+        scores.append(intersection / union if union != 0 else 0)
+    return scores
+
+# Fungsi untuk mengambil snippet dokumen
+def extract_snippet(document, query, max_length=200):
+    start_index = document.lower().find(query.lower())
+    if start_index == -1:
+        start_index = 0
+
+    end_index = start_index + max_length
+    if end_index < len(document):
+        last_space = document.rfind(" ", start_index, end_index)
+        if last_space != -1:
+            end_index = last_space
+
+    snippet = document[start_index:end_index]
+    return snippet.strip() + ("..." if len(document) > end_index else "")
+
+# Endpoint untuk pencarian
 @app.route('/search', methods=['POST'])
 def search():
-    """Endpoint untuk mencari dokumen berdasarkan kategori, scoring, dan query."""
     data = request.json
     category = data.get('category')
     scoring = data.get('scoring')
@@ -34,22 +112,17 @@ def search():
     if not query:
         return jsonify({"error": "Query cannot be empty"}), 400
 
-    # Membaca dokumen dari MongoDB (processed)
     output_documents, titles = read_documents_from_processed(category)
-
-    # Membaca dokumen dari MongoDB (scrapping)
     input_documents = read_documents_from_scrapping(category)
 
     if not output_documents:
         return jsonify({"error": "No documents found in the selected category"}), 404
 
-    # Menghitung skor berdasarkan metode yang dipilih
     if scoring == "cosine":
         scores = calculate_cosine_similarity(query, output_documents)
     else:
         scores = calculate_jaccard_similarity(query, output_documents)
 
-    # Filter dokumen dengan skor > 0
     valid_indices = [i for i, score in enumerate(scores) if score > 0]
     results = [
         {
@@ -60,7 +133,6 @@ def search():
         for i in valid_indices
     ]
 
-    # Perkaya hasil dengan data dari scrapping
     for result in results:
         for doc in input_documents:
             if result["title"] == doc["title"]:
@@ -72,36 +144,6 @@ def search():
                 })
 
     return jsonify(results)
-
-def read_documents_from_processed(category):
-    """Membaca dokumen dari koleksi processed berdasarkan kategori."""
-    collection = mongo.db[DB_PROCESSED][category]  # Akses koleksi di database processed
-    documents = []
-    titles = []
-
-    for doc in collection.find():
-        processed_text = doc.get("processed_text", [])
-        if processed_text:
-            documents.append(" ".join(processed_text))
-            titles.append(doc.get("title", ""))
-    
-    return documents, titles
-
-def read_documents_from_scrapping(category):
-    """Membaca dokumen dari koleksi scrapping berdasarkan kategori."""
-    collection = mongo.db[DB_SCRAPPING][category]  # Akses koleksi di database scrapping
-    documents = []
-
-    for doc in collection.find():
-        documents.append({
-            "title": doc.get("title", ""),
-            "url": doc.get("url", ""),
-            "img_url": doc.get("image_url", ""),
-            "tanggalberita": doc.get("date", ""),
-            "snippet": doc.get("content", "")[:200]  # Ambil snippet dari content
-        })
-    
-    return documents
 
 if __name__ == '__main__':
     app.run(debug=True)
