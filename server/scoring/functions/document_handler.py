@@ -1,48 +1,37 @@
-import os
-import json
+def read_documents_from_processed(category):
+    try:
+        collection = mongo.cx[DB_PROCESSED][category]
+        documents = []
+        titles = []
 
-def read_documents(folder):
-    """Membaca dokumen dari folder output dan mengembalikan daftar konten dan judul."""
-    documents = []
-    titles = []
-    for filename in os.listdir(folder):
-        if filename.endswith(".txt"):
-            titles.append(os.path.splitext(filename)[0])
-            with open(os.path.join(folder, filename), 'r', encoding='utf-8') as file:
-                documents.append(file.read())
-    return documents, titles
+        cursor = collection.find({})
+        for doc in cursor:
+            processed_text = doc.get("processed_text", [])
+            documents.append(" ".join(processed_text))
+            titles.append(doc.get("title", "Unknown Title"))
 
-def read_input_documents(folder, url_file):
-    """Membaca dokumen dari folder input dan JSON URL, lalu mengembalikan informasi lengkap."""
-    documents = []
-    titles = []
-    details = []
+        return documents, titles
+    except Exception as e:
+        print(f"Error reading from processed database: {e}")
+        return [], []
 
-    # Membaca URL dari file JSON
-    with open(url_file, 'r', encoding='utf-8') as url_fp:
-        url_mapping = json.load(url_fp)
+# Fungsi membaca dokumen dari koleksi scrapping
+def read_documents_from_scrapping(category):
+    try:
+        collection = mongo.cx[DB_SCRAPPING][category]
+        documents = []
 
-    for filename in os.listdir(folder):
-        if filename.endswith(".txt"):
-            title = os.path.splitext(filename)[0]
-            filepath = os.path.join(folder, filename)
-            with open(filepath, 'r', encoding='utf-8') as file:
-                content = file.read()
-
-            # Ekstraksi metadata dari file
-            lines = content.splitlines()
-            tanggalberita = lines[0].replace("Tanggal Berita: ", "").strip() if lines else ""
-            img_url = lines[1].replace("URL Gambar: ", "").strip() if len(lines) > 1 else ""
-            snippet_start = 2  # Asumsikan snippet dimulai dari baris ke-3
-            snippet = " ".join(lines[snippet_start:]).strip()[:200] + ("..." if len(content) > 200 else "")
-
-            # Simpan hasil
+        cursor = collection.find({})
+        for doc in cursor:
             documents.append({
-                "title": title,
-                "tanggalberita": tanggalberita,
-                "img_url": img_url,
-                "snippet": snippet,
-                "url": url_mapping.get(f"{title}.txt", "")
+                "title": doc.get("title", ""),
+                "url": doc.get("url", ""),
+                "image_url": doc.get("image_url", ""),
+                "date": doc.get("date", ""),
+                "snippet": doc.get("content", "")[:200]
             })
-            titles.append(title)
-    return documents, titles
+
+        return documents
+    except Exception as e:
+        print(f"Error reading from scrapping database: {e}")
+        return []

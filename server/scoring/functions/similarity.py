@@ -2,21 +2,14 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# def calculate_cosine_similarity(query, documents):
-#     """Menghitung Cosine Similarity antara query dan dokumen."""
-#     vectorizer = TfidfVectorizer()
-#     tfidf_matrix = vectorizer.fit_transform(documents)
-#     query_tfidf = vectorizer.transform([query])
-#     return cosine_similarity(query_tfidf, tfidf_matrix).flatten()
-
+# Fungsi menghitung Cosine Similarity
 def calculate_cosine_similarity(query, documents):
-    """Menghitung Cosine Similarity antara query dan dokumen."""
     vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(documents +[query])
+    tfidf_matrix = vectorizer.fit_transform(documents + [query])
     return cosine_similarity(tfidf_matrix[-1], tfidf_matrix[:-1]).flatten()
 
+# Fungsi menghitung Jaccard Similarity
 def calculate_jaccard_similarity(query, documents):
-    """Menghitung Jaccard Similarity antara query dan dokumen."""
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(documents)
     query_tfidf = vectorizer.transform([query])
