@@ -5,6 +5,8 @@ import re
 import json
 from pymongo import MongoClient
 from utilitas import update_json
+from datetime import datetime
+
 
 
 # Membuat koneksi ke MongoDB
@@ -48,7 +50,7 @@ def save_to_mongo(category, data):
     """
     Menyimpan data ke dalam koleksi MongoDB berdasarkan kategori yang diberikan.
     Data juga akan disimpan ke dalam koleksi `all`.
-    Format data yang diterima adalah { "judul": "url", "content": "konten artikel", "image_url": "url gambar", "date": "tanggal" }
+    Format data yang diterima adalah { "title": "url", "content": "konten artikel", "image_url": "url gambar", "date": "tanggal" }
     """
     # Koleksi berdasarkan kategori
     category_collection = db_scrapping[category]
@@ -60,14 +62,14 @@ def save_to_mongo(category, data):
     for filename, article_data in data.items():
         # Simpan ke koleksi kategori
         category_collection.update_one(
-            {"judul": filename},  # Menentukan filter untuk data yang sudah ada
+            {"title": filename},  # Menentukan filter untuk data yang sudah ada
             {"$set": article_data},  # Mengupdate atau menyimpan artikel baru
             upsert=True  # Jika tidak ada, maka data akan dimasukkan
         )
         
         # Simpan ke koleksi all
         all_collection.update_one(
-            {"judul": filename},
+            {"title": filename},
             {"$set": article_data},
             upsert=True
         )
@@ -100,11 +102,12 @@ def process_url(url):
 
         # Membuat data yang akan disimpan ke MongoDB
         article_data = {
-            "judul": filename,
-            "url": url,
-            "date": date,
-            "content": content,
-            "image_url": image_url
+            'title': title,
+            'date': date,
+            'content': content,
+            'image_url': image_url,
+            'url': url,
+            'date_added': datetime.utcnow()
         }
 
         # Menyimpan data ke MongoDB
