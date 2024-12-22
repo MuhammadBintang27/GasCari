@@ -3,12 +3,12 @@
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
-2. [Features](#features)
-3. [Technologies Used](#technologies-used)
-4. [Setup Instructions](#setup-instructions)
-5. [Usage](#usage)
-6. [Contributing](#contributing)
+1. [Introduction](#introduction-)
+2. [Features](#features-%EF%B8%8F)
+3. [Technologies Used](#technologies-used-)
+4. [Setup Instructions](#setup-instructions-%EF%B8%8F)
+5. [Usage](#usage-)
+6. [Contributing](#contributing-)
 
 
 
