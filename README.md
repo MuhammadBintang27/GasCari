@@ -9,8 +9,7 @@
 4. [Setup Instructions](#setup-instructions)
 5. [Usage](#usage)
 6. [Contributing](#contributing)
-7. [License](#license)
-8. [Acknowledgments](#acknowledgments)
+
 
 ---
 
@@ -118,12 +117,4 @@ We welcome contributions from everyone! If you want to contribute, follow these 
 
 ---
 
-## License
 
-This project is licensed under the [License Name]. See the [LICENSE](LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-Special thanks to [Name or Institution] for the guidance and support throughout this project.
