@@ -6,11 +6,13 @@ import json
 from pymongo import MongoClient
 from utilitas import update_json
 from datetime import datetime
+from dotenv import load_dotenv
 
-
+# Load environment variables
+load_dotenv()
 
 # Membuat koneksi ke MongoDB
-client = MongoClient("mongodb://localhost:27017/")  # Gantilah URL jika menggunakan server MongoDB remote
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 db_scrapping = client["scrapping"]  # Database scrapping untuk menyimpan hasil scraping
 db_crawling = client["crawling"]  # Database crawling untuk mengambil URL
 otodetik_collection = db_crawling["otodetik"]  # Koleksi otodetik dalam database crawling

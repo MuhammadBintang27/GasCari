@@ -3,9 +3,13 @@ from bs4 import BeautifulSoup
 import os
 from urllib.parse import urljoin
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Setup MongoDB connection
-client = MongoClient("mongodb://localhost:27017/")  # Gantilah dengan URL MongoDB Anda
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 db = client['crawling']  # Nama database
 autonetmagz_collection = db['autonetmagz']  # Koleksi untuk autonetmagz
 all_links_collection = db['all_links']  # Koleksi untuk semua link

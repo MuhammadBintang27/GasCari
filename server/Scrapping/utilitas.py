@@ -1,9 +1,13 @@
 from pymongo import MongoClient
 import os
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Membuat koneksi ke MongoDB
-client = MongoClient("mongodb://localhost:27017/")  # Gantilah URL jika menggunakan server MongoDB remote
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 db = client["Scrapping"]
 
 def save_to_mongo(category, data):

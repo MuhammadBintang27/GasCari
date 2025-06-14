@@ -5,12 +5,17 @@ from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFacto
 from nltk.tokenize import word_tokenize
 import nltk
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Unduh resource tokenisasi NLTK
 nltk.download('punkt')
 
 # Koneksi ke MongoDB
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 source_db = client["scrapping"]  # Database asal
 processed_db = client["processed"]  # Database untuk hasil yang diproses
 

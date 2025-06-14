@@ -3,9 +3,13 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Setup MongoDB connection
-client = MongoClient("mongodb://localhost:27017/")  # Gantilah dengan URL MongoDB Anda
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 db = client['crawling']  # Nama database
 otodetik_collection = db['otodetik']  # Nama koleksi otodetik
 all_links_collection = db['all_links']  # Nama koleksi all_links
@@ -78,8 +82,9 @@ if __name__ == '__main__':
     # URL dasar untuk kategori yang dipilih, dengan format tanggal seperti yang Anda inginkan
     base_url = "https://oto.detik.com/indeks?date="  # Menggunakan base URL yang diinginkan
 
-    start_date = datetime.strptime('2024-12-12', '%Y-%m-%d').date()
-    end_date = datetime.strptime('2022-06-07', '%Y-%m-%d').date()
+    start_date = datetime.now().date()
+    # Set end_date to 1 year ago from today
+    end_date = start_date - timedelta(days=365)
 
     # Batas link untuk setiap kategori
     max_links = {'berita': 1000, 'mobil': 700, 'motor': 700}

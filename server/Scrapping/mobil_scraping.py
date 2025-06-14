@@ -11,6 +11,10 @@ from pymongo import MongoClient
 from datetime import datetime
 from utilitas import update_json
 import time
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def preprocess_text(text):
     """Membersihkan teks dari spasi berlebih dan karakter yang tidak diinginkan."""
@@ -123,7 +127,7 @@ def process_url(url):
         skipped_urls.append(url)
 
 # Koneksi MongoDB
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
 db_crawling = client['crawling']
 collection_otodetik = db_crawling['otodetik']
 collection_autonetmagz = db_crawling['autonetmagz']

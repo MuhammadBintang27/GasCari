@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import Layout from "../Components/Layouts/Layout";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const SearchComponent = ({ category, heroTitle, heroSubtitle, heroImage, searchPlaceholder }) => {
   const [query, setQuery] = useState("");
   const [resultsCosine, setResultsCosine] = useState([]);
@@ -27,12 +29,12 @@ const SearchComponent = ({ category, heroTitle, heroSubtitle, heroImage, searchP
 
     try {
       const [cosineResponse, jaccardResponse] = await Promise.all([
-        axios.post("http://localhost:5000/search", {
+        axios.post(`${API_URL}/search`, {
           category,
           scoring: "cosine",
           query,
         }),
-        axios.post("http://localhost:5000/search", {
+        axios.post(`${API_URL}/search`, {
           category,
           scoring: "jaccard",
           query,
@@ -165,7 +167,7 @@ const SearchComponent = ({ category, heroTitle, heroSubtitle, heroImage, searchP
 
                   <div className="grid grid-cols-6 gap-6">
                     <div className="col-span-3">
-                      <h2 className="text-lg font-bold text-white">Cosine</h2>
+                      <h2 className="text-xl pb-4 font-bold text-white text-center">Cosine</h2>
                       {displayResultsCosine.map((result, index) => (
                         <div
                           key={index}
@@ -197,7 +199,7 @@ const SearchComponent = ({ category, heroTitle, heroSubtitle, heroImage, searchP
                     </div>
 
                     <div className="col-span-3">
-                      <h2 className="text-lg font-bold text-white">Jaccard</h2>
+                      <h2 className="text-xl pb-4 font-bold text-white text-center">Jaccard</h2>
                       {displayResultsJaccard.map((result, index) => (
                         <div
                           key={index}

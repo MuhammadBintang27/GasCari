@@ -3,6 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Fungsi untuk mengambil artikel dari halaman Motorace dengan BeautifulSoup
 def get_motorace_article_links(url, max_links_per_day=10):
@@ -33,9 +37,8 @@ def get_motorace_article_links(url, max_links_per_day=10):
 
 # Fungsi untuk menyambungkan ke MongoDB
 def get_mongo_connection():
-    client = MongoClient('mongodb://localhost:27017/')  # Menghubungkan ke server MongoDB lokal
-    db = client['crawling']  # Menggunakan database 'crawling'
-    return db  # Mengembalikan database untuk digunakan dengan koleksi yang berbeda
+    client = MongoClient(os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
+    return client
 
 # Fungsi untuk crawling halaman indeks Motorace berdasarkan tanggal
 def crawl_motorace_articles():

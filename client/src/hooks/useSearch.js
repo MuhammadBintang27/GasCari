@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const useSearch = (query) => {
   const [resultsCosine, setResultsCosine] = useState([]);
   const [resultsJaccard, setResultsJaccard] = useState([]);
@@ -10,6 +12,7 @@ const useSearch = (query) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPagesCosine, setTotalPagesCosine] = useState(1);
   const [totalPagesJaccard, setTotalPagesJaccard] = useState(1);
+  const [error, setError] = useState(null);
 
   const category = "all";
 
@@ -21,12 +24,12 @@ const useSearch = (query) => {
 
     try {
       const [cosineResponse, jaccardResponse] = await Promise.all([
-        axios.post("http://localhost:5000/search", {
+        axios.post(`${API_URL}/search`, {
           category,
           scoring: "cosine",
           query,
         }),
-        axios.post("http://localhost:5000/search", {
+        axios.post(`${API_URL}/search`, {
           category,
           scoring: "jaccard",
           query,
@@ -69,6 +72,7 @@ const useSearch = (query) => {
       setSearchTime(((endTime - startTime) / 1000).toFixed(2));
     } catch (error) {
       console.error("Error searching:", error);
+      setError(error.message);
     }
 
     setLoading(false);
@@ -106,6 +110,7 @@ const useSearch = (query) => {
     currentPage,
     totalPagesCosine,
     totalPagesJaccard,
+    error,
     handleSearch,
     handlePageChange,
     displayResultsCosine,
